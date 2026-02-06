@@ -1,0 +1,138 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 20% 98%;
+  --foreground: 222.2 47.4% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+  /* Toggl Track primary (Pink #E57CD8, hsl 307 67% 69%) */
+  --primary: 307 67% 69%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 47% 96%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 20% 92%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 20% 92%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: var(--primary);
+  --radius: 14px;
+}
+
+.dark {
+  --background: 222.2 14% 10%;
+  --foreground: 210 20% 98%;
+  --card: 222.2 14% 12%;
+  --card-foreground: 210 20% 98%;
+  --popover: 222.2 14% 12%;
+  --popover-foreground: 210 20% 98%;
+  --primary: 307 67% 69%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217.2 16.2% 17.5%;
+  --secondary-foreground: 210 20% 98%;
+  --muted: 217.2 16.2% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 16.2% 17.5%;
+  --accent-foreground: 210 20% 98%;
+  --destructive: 0 62.8% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 217.2 16.2% 17.5%;
+  --input: 217.2 16.2% 17.5%;
+  --ring: var(--primary);
+}
+
+* {
+  font-family:
+    "Space Grotesk",
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  border-color: hsl(var(--border));
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(67, 132, 190, 0.04), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.05), transparent 40%), hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.dark body {
+  background: hsl(var(--background));
+}
+
+.card {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.08);
+}
+
+.soft-shadow {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+  transition:
+    transform 0.1s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-muted {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--border));
+}
+
+.btn-primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.text-subtle {
+  color: hsl(var(--muted-foreground));
+}
+
+.scroll-area {
+  max-height: none;
+  overflow-y: auto;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
