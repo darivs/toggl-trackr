@@ -13,7 +13,7 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "baseUrl": "./src",
-    "typeRoots": ["./node_modules/@types"]
+    "types": ["node"]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.server.json" }]

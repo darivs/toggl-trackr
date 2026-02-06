@@ -1,6 +1,5 @@
 import React from "react";
 import { Info } from "lucide-react";
-import { formatMinutes } from "../utils/hours";
 
 type Props = {
   minutes: number;
