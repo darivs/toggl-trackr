@@ -10,6 +10,10 @@ made 🧪 with ♥
 
 toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares actual hours against your targets (with optional mock data when you just want to try it). You can mark individual days off in any week so the weekly target shrinks automatically. The whole thing runs as a small React + Express app that stays local unless you add your own Toggl API token.
 
+### Screenshot
+
+<img width="2559" height="1326" alt="image" src="https://github.com/user-attachments/assets/10bebfc9-b21f-4d10-9ca3-b769eefc73b9" />
+
 ---
 
 ### Table of Contents
