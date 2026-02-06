@@ -4,7 +4,7 @@
 
 ## Kontext
 
-Lokale React-Webanwendung die über die Toggl Track API alle gearbeiteten Stunden seit einem konfigurierbaren Startdatum (default: 05.01.2026) abruft. Ziel: 32h/Woche bei
+Lokale React-Webanwendung die über die Toggl Track API alle gearbeiteten Stunden seit einem konfigurierbaren Startdatum (default: 01.01.2026) abruft. Ziel: 32h/Woche bei
 4-Tage-Woche. Über-/Unterstunden werden auf einem Arbeitszeitkonto kumuliert. Die App zeigt das Konto prominent an + aktuelle Wochenstunden + Wochenhistorie.
 
 ## Gesammelte Anforderungen (Interview-Ergebnisse)
