@@ -7,6 +7,16 @@ made 🧪 with ♥
 
 ---
 
+### Introduction
+
+toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares actual hours against your targets (with optional mock data when you just want to try it). You can mark individual days off in any week so the weekly target shrinks automatically. The whole thing runs as a small React + Express app that stays local unless you add your own Toggl API token.
+
+### Screenshots
+
+| Current Week + Light Mode                                                                                                     | History + Dark Mode                                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| <img width="1259" alt="Current Week" src="https://github.com/user-attachments/assets/a88f537a-bae8-425b-ba11-4e8c3d468a90" /> | <img width="1250" alt="History" src="https://github.com/user-attachments/assets/e5b4abf5-1582-40ba-bb6d-9f538c01f042" /> |
+
 ### Table of Contents
 
 - [Introduction](#introduction)
@@ -31,9 +41,9 @@ toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares
 
 ### Screenshots
 
-| Current Week + Plus Hours + Light Mode                                                                                        | History + Minus Hours + Dark Mode                                                                                                      |
+| Current Week + Light Mode                                                                                                     | History + Dark Mode                                                                                                      |
 | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| <img width="1259" alt="Current Week" src="https://github.com/user-attachments/assets/a88f537a-bae8-425b-ba11-4e8c3d468a90" /> | <img  width="1259" alt="image" src="https://github.com/user-attachments/assets/46bb0986-573a-453e-8260-3015eb948752" />  |
+| <img width="1259" alt="Current Week" src="https://github.com/user-attachments/assets/a88f537a-bae8-425b-ba11-4e8c3d468a90" /> | <img width="1250" alt="History" src="https://github.com/user-attachments/assets/e5b4abf5-1582-40ba-bb6d-9f538c01f042" /> |
 
 ### Tech Stack
 
