@@ -6,6 +6,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import WeekHistory from "./components/WeekHistory";
 import type { Config, DaysOffMap, WeekSummary } from "./utils/hours";
 import { computeSummary } from "./utils/hours";
+import Tabs from "./components/Tabs";
 
 const App: React.FC = () => {
   const [config, setConfig] = useState<Config | null>(null);
@@ -80,20 +81,36 @@ const App: React.FC = () => {
         )}
 
         {summary ? (
-          <WeekHistory
-            weeks={summary.weeks.filter((week) => !week.isCurrentWeek)}
-            onToggleDayOff={handleToggleDayOff}
-            header={
-              <>
-                <div className="w-full max-w-4xl">
-                  <WorkingTimeAccount minutes={summary.plusAccountMinutes} />
-                </div>
-                <div className="w-full max-w-4xl">
-                  <CurrentWeek week={summary.currentWeek} />
-                </div>
-              </>
-            }
-          />
+          <div className="w-full max-w-4xl flex flex-col items-center gap-6">
+            <div className="w-full">
+              <WorkingTimeAccount minutes={summary.plusAccountMinutes} />
+            </div>
+            <Tabs
+              tabs={[
+                { id: "current", label: "Aktuelle Woche" },
+                { id: "history", label: "Historie" },
+              ]}
+              initialId="current"
+            >
+              {(active) => (
+                <>
+                  {active === "current" && (
+                    <div className="w-full">
+                      <CurrentWeek week={summary.currentWeek} />
+                    </div>
+                  )}
+                  {active === "history" && (
+                    <WeekHistory
+                      weeks={summary.weeks.filter((week) => !week.isCurrentWeek)}
+                      onToggleDayOff={handleToggleDayOff}
+                      defaultOpen
+                      disableToggle
+                    />
+                  )}
+                </>
+              )}
+            </Tabs>
+          </div>
         ) : (
           <div className="text-subtle">{loading ? "Lade Daten…" : "Keine Daten verfügbar."}</div>
         )}

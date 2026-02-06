@@ -6,14 +6,36 @@ type Props = {
   weeks: ComputedWeek[];
   onToggleDayOff: (weekStart: string, dayIndex: number) => void;
   header?: React.ReactNode;
+  /**
+   * When true the list starts expanded instead of showing the CTA button.
+   * Useful when the component is used inside a tab where visibility is
+   * controlled externally.
+   */
+  defaultOpen?: boolean;
+  /**
+   * Locks the component in the expanded state and hides the toggle button.
+   */
+  disableToggle?: boolean;
 };
 
-const WeekHistory: React.FC<Props> = ({ weeks, onToggleDayOff, header }) => {
-  const [open, setOpen] = useState(false);
+const WeekHistory: React.FC<Props> = ({
+  weeks,
+  onToggleDayOff,
+  header,
+  defaultOpen = false,
+  disableToggle = false,
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerMaxHeight, setContainerMaxHeight] = useState<number>(360);
+
+  useLayoutEffect(() => {
+    if (disableToggle) {
+      setOpen(true);
+    }
+  }, [disableToggle]);
 
   useLayoutEffect(() => {
     if (bodyRef.current) {
@@ -46,14 +68,16 @@ const WeekHistory: React.FC<Props> = ({ weeks, onToggleDayOff, header }) => {
           <p className="text-sm uppercase tracking-wide text-subtle">Wochenhistorie</p>
           <p className="text-lg font-semibold">Alle Wochen seit Startdatum</p>
         </div>
-        <button
-          type="button"
-          className="btn btn-muted text-xs px-3 py-1"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-        >
-          {open ? "Einklappen" : "Ausklappen"}
-        </button>
+        {!disableToggle && (
+          <button
+            type="button"
+            className="btn btn-muted text-xs px-3 py-1"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+          >
+            {open ? "Einklappen" : "Ausklappen"}
+          </button>
+        )}
       </div>
       <div
         className="overflow-hidden"
@@ -104,7 +128,7 @@ const WeekHistory: React.FC<Props> = ({ weeks, onToggleDayOff, header }) => {
     </div>
   );
 
-  if (!open) {
+  if (!open && !disableToggle) {
     return (
       <div className="flex w-full flex-col items-center gap-6">
         {header}
