@@ -2,6 +2,7 @@ node_modules/
 dist/
 .vite/
 coverage/
+.pnpm-store/
 
 # Logs
 npm-debug.log*
@@ -13,6 +14,7 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+.docker.env
 
 # OS / IDE
 .DS_Store

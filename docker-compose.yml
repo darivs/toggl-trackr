@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    env_file:
+      - .docker.env
+    ports:
+      - "51731:51731"
+      - "43001:43001"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 51731
+    command: ["pnpm", "dev"]

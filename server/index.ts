@@ -12,11 +12,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DATA_FILE = path.join(__dirname, "data.json");
-const PORT = 3001;
-const START_DATE = process.env.START_DATE ?? "2025-01-05";
+const PORT = 43001;
+const START_DATE = process.env.START_DATE ?? "2026-01-01";
 const TOGGL_API_TOKEN = process.env.TOGGL_API_TOKEN ?? "";
-const TOGGL_API_ME_URL =
-  process.env.TOGGL_API_ME_URL ?? "https://api.track.toggl.com/api/v9/me";
+const TOGGL_API_ME_URL = process.env.TOGGL_API_ME_URL ?? "https://api.track.toggl.com/api/v9/me";
 const TEST_MODE = process.env.TEST_MODE === "true";
 // Workspace/Org-Konfiguration nicht mehr nötig, wir lesen immer "me"-Einträge
 const TARGET_HOURS_PER_WEEK = Number(process.env.TARGET_HOURS_PER_WEEK ?? 32);
