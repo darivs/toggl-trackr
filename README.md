@@ -1,10 +1,9 @@
-# toggl-trackr ⌛
+toggl-trackr ⌛
+---
 
 planned 📐 (docs/prd.md) with help from **Claude Code v2.1.33; Opus 4.6**  
 implemented 🧩 with help from **OpenAI Codex v0.98.0; gpt-5.1-codex-max**  
 made 🧪 with ♥
-
----
 
 ### Introduction
 
@@ -12,9 +11,8 @@ toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares
 
 ### Screenshot
 
-<img width="2559" height="1326" alt="image" src="https://github.com/user-attachments/assets/10bebfc9-b21f-4d10-9ca3-b769eefc73b9" />
+<img width="2518" height="1325" alt="image" src="https://github.com/user-attachments/assets/a88f537a-bae8-425b-ba11-4e8c3d468a90" />
 
----
 
 ### Table of Contents
 
