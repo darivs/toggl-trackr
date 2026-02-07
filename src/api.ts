@@ -10,6 +10,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     ...init,
   });
 
@@ -23,6 +24,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function getConfig(): Promise<Config> {
   return request<Config>("/api/config");
+}
+
+export async function saveTogglToken(
+  token: string
+): Promise<{ configured: boolean; source: "store" | "env" | "none" }> {
+  return request<{ configured: boolean; source: "store" | "env" | "none" }>("/api/toggl-token", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function getCurrentUser(): Promise<{ user: { email: string; name?: string; picture?: string } }> {
+  return request<{ user: { email: string; name?: string; picture?: string } }>("/api/auth/me");
+}
+
+export async function loginWithGoogle(credential: string) {
+  const data = await request<{ user: { email: string; name?: string; picture?: string } }>("/api/auth/google", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+
+  return data.user;
+}
+
+export async function logout() {
+  await request<void>("/api/auth/logout", { method: "POST" });
 }
 
 export async function getHours(): Promise<WeekSummary[]> {

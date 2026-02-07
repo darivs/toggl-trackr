@@ -13,6 +13,9 @@ export type Config = {
   daysPerWeek: number;
   testMode?: boolean;
   dataEndDate?: string;
+  togglTokenConfigured?: boolean;
+  togglTokenSource?: "store" | "env" | "none";
+  needsTogglToken?: boolean;
 };
 
 export type ComputedWeek = {

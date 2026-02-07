@@ -10,10 +10,12 @@ export default defineConfig({
     },
   },
   server: {
+    allowedHosts: ["toggl.ouder.space"],
     host: "0.0.0.0",
     port: 51731,
+    strictPort: true,
     proxy: {
-      "/api": "http://localhost:43001",
+      "/api": "http://127.0.0.1:43001",
     },
   },
 });
