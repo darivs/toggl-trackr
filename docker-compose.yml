@@ -8,5 +8,5 @@ services:
       - "43001:43001"
     environment:
       HOST: 0.0.0.0
-      PORT: 51731
+      PORT: 43001
     command: ["pnpm", "dev"]
