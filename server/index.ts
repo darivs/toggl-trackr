@@ -41,15 +41,16 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(cookieParser());
 app.use(express.json());
 
 export type AppStore = {
   daysOff: Record<string, number[]>; // weekStart -> weekday indices (0=Mon)
-  togglApiToken?: string | null;
+  togglApiTokens: Record<string, string>; // email -> token
 };
 
-const defaultStore: AppStore = { daysOff: {}, togglApiToken: null };
+const defaultStore: AppStore = { daysOff: {}, togglApiTokens: {} };
 
 type AuthPayload = {
   email: string;
@@ -59,7 +60,6 @@ type AuthPayload = {
 
 declare global {
   namespace Express {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface Request {
       cookies?: Record<string, string>;
       user?: AuthPayload;
@@ -70,13 +70,21 @@ declare global {
 async function readStore(): Promise<AppStore> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
-    const parsed = JSON.parse(raw) as Partial<AppStore> & { daysOff?: Record<string, number[]> };
+    const parsed = JSON.parse(raw) as Partial<AppStore> & {
+      daysOff?: Record<string, number[]>;
+      togglApiToken?: string;
+    };
+
+    const togglApiTokens = parsed?.togglApiTokens
+      ? parsed.togglApiTokens
+      : parsed?.togglApiToken
+        ? { __global__: parsed.togglApiToken }
+        : {};
 
     return {
       ...defaultStore,
-      ...(parsed ?? {}),
       daysOff: parsed?.daysOff ?? {},
-      togglApiToken: parsed?.togglApiToken ?? null,
+      togglApiTokens,
     } satisfies AppStore;
   } catch (readError) {
     console.error(readError);
@@ -135,17 +143,30 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Invalid session" });
+    return res.status(401).json({ error: "Invalid session:" + err });
   }
 };
 
 app.get(
   "/api/config",
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     const sample = TEST_MODE ? sampleTimeEntries() : null;
     const bounds = sample ? sampleBounds(sample) : null;
     const store = await readStore();
-    const tokenSource = store.togglApiToken ? "store" : TOGGL_API_TOKEN ? "env" : "none";
+
+    let email: string | undefined;
+    const maybeToken = req.cookies?.session;
+    if (maybeToken) {
+      try {
+        const decoded = jwt.verify(maybeToken, JWT_SECRET) as AuthPayload;
+        email = decoded.email;
+      } catch {
+        // ignore invalid cookie for this public route
+      }
+    }
+
+    const hasUserToken = email ? Boolean(store.togglApiTokens[email]) : false;
+    const tokenSource = hasUserToken ? "store" : TOGGL_API_TOKEN ? "env" : "none";
     const tokenConfigured = tokenSource !== "none";
 
     res.json({
@@ -165,7 +186,7 @@ app.get(
 app.get(
   "/api/days-off",
   authMiddleware,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     const store = await readStore();
     res.json({ daysOff: store.daysOff });
   })
@@ -191,9 +212,11 @@ app.put(
 app.get(
   "/api/hours",
   authMiddleware,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
     const store = await readStore();
-    const token = store.togglApiToken || TOGGL_API_TOKEN;
+    const email = req.user?.email;
+    const token = (email ? store.togglApiTokens[email] : undefined) || TOGGL_API_TOKEN;
+
     if (!token && !TEST_MODE) {
       return res.status(400).json({ error: "TOGGL_API_TOKEN fehlt. Bitte im Frontend hinterlegen." });
     }
@@ -237,9 +260,12 @@ app.post(
 app.get(
   "/api/toggl-token",
   authMiddleware,
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
+    const email = req.user?.email;
+    if (!email) return res.status(401).json({ error: "Unauthenticated" });
+
     const store = await readStore();
-    const source = store.togglApiToken ? "store" : TOGGL_API_TOKEN ? "env" : "none";
+    const source = store.togglApiTokens[email] ? "store" : TOGGL_API_TOKEN ? "env" : "none";
     res.json({ configured: source !== "none", source });
   })
 );
@@ -249,12 +275,17 @@ app.post(
   authMiddleware,
   asyncHandler(async (req, res) => {
     const { token } = req.body ?? {};
+    const email = req.user?.email;
+    if (!email) return res.status(401).json({ error: "Unauthenticated" });
     if (typeof token !== "string" || !token.trim()) {
       return res.status(400).json({ error: "token is required" });
     }
 
     const store = await readStore();
-    const next = { ...store, togglApiToken: token.trim() } satisfies AppStore;
+    const next = {
+      ...store,
+      togglApiTokens: { ...store.togglApiTokens, [email]: token.trim() },
+    } satisfies AppStore;
     await writeStore(next);
 
     res.json({ configured: true, source: "store" });
@@ -268,6 +299,7 @@ app.post("/api/auth/logout", (_req, res) => {
     sameSite: "lax",
     domain: COOKIE_DOMAIN,
   });
+
   res.json({ ok: true });
 });
 

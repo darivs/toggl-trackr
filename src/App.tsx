@@ -52,7 +52,6 @@ const App: React.FC = () => {
     };
 
     void loadInitial();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const summary = useMemo(() => {
@@ -78,7 +77,15 @@ const App: React.FC = () => {
   const handleLogin = async (u: AuthUser) => {
     setUser(u);
     setError(null);
-    if (!config?.testMode && config?.needsTogglToken) return;
+    try {
+      const refreshed = await getConfig();
+      setConfig(refreshed);
+      if (!refreshed.testMode && refreshed.needsTogglToken) return;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Konnte Config nach Login nicht laden");
+
+      return;
+    }
     await loadProtected();
   };
 
@@ -96,6 +103,7 @@ const App: React.FC = () => {
   const handleSaveToken = async (token: string) => {
     if (!token.trim()) {
       setError("Bitte einen gültigen Toggl API Token eingeben.");
+
       return false;
     }
     setSavingToken(true);
@@ -108,11 +116,14 @@ const App: React.FC = () => {
       setConfig((prev) =>
         prev ? { ...prev, needsTogglToken: false, togglTokenConfigured: true, togglTokenSource: "store" } : prev
       );
+
       await loadProtected({ force: true });
+
       return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Token konnte nicht gespeichert werden";
       setError(msg);
+
       return false;
     } finally {
       setSavingToken(false);

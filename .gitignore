@@ -16,6 +16,9 @@ pnpm-debug.log*
 .env.*.local
 .docker.env
 
+# Local runtime data
+server/data.json
+
 # OS / IDE
 .DS_Store
 .idea/

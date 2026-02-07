@@ -19,7 +19,6 @@ declare global {
     google?: typeof google;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace google {
     const accounts: {
       id: {
@@ -38,6 +37,7 @@ export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) {
       onError("Fehlende VITE_GOOGLE_CLIENT_ID in der Umgebung");
+
       return;
     }
 
@@ -59,14 +59,16 @@ export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
 
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      callback: async (payload) => {
-        try {
-          const user = await loginWithGoogle(payload.credential);
-          onLogin(user);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Login fehlgeschlagen";
-          onError(msg);
-        }
+      callback: (payload) => {
+        (async () => {
+          try {
+            const user = await loginWithGoogle(payload.credential);
+            onLogin(user);
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : "Login fehlgeschlagen";
+            onError(msg);
+          }
+        })();
       },
     });
 
@@ -76,6 +78,7 @@ export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
       shape: "pill",
       text: "continue_with",
     });
+
     window.google.accounts.id.prompt();
   }, [ready, onLogin, onError]);
 
