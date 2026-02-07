@@ -24,7 +24,9 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? "";
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret";
 const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN; // optional for custom domain
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN
-  ? process.env.FRONTEND_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean)
+  ? process.env.FRONTEND_ORIGIN.split(",")
+      .map((o) => o.trim())
+      .filter(Boolean)
   : ["http://localhost:51731", "http://localhost:5173"];
 // Workspace/Org-Konfiguration nicht mehr nötig, wir lesen immer "me"-Einträge
 const TARGET_HOURS_PER_WEEK = Number(process.env.TARGET_HOURS_PER_WEEK ?? 32);
@@ -42,11 +44,12 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-export type DaysOffStore = {
+export type AppStore = {
   daysOff: Record<string, number[]>; // weekStart -> weekday indices (0=Mon)
+  togglApiToken?: string | null;
 };
 
-const defaultStore: DaysOffStore = { daysOff: {} };
+const defaultStore: AppStore = { daysOff: {}, togglApiToken: null };
 
 type AuthPayload = {
   email: string;
@@ -64,12 +67,17 @@ declare global {
   }
 }
 
-async function readStore(): Promise<DaysOffStore> {
+async function readStore(): Promise<AppStore> {
   try {
     const raw = await fs.readFile(DATA_FILE, "utf-8");
-    const parsed = JSON.parse(raw) as DaysOffStore;
+    const parsed = JSON.parse(raw) as Partial<AppStore> & { daysOff?: Record<string, number[]> };
 
-    return parsed?.daysOff ? parsed : defaultStore;
+    return {
+      ...defaultStore,
+      ...(parsed ?? {}),
+      daysOff: parsed?.daysOff ?? {},
+      togglApiToken: parsed?.togglApiToken ?? null,
+    } satisfies AppStore;
   } catch (readError) {
     console.error(readError);
 
@@ -77,7 +85,7 @@ async function readStore(): Promise<DaysOffStore> {
   }
 }
 
-async function writeStore(store: DaysOffStore): Promise<void> {
+async function writeStore(store: AppStore): Promise<void> {
   await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
   await fs.writeFile(DATA_FILE, JSON.stringify(store, null, 2), "utf-8");
 }
@@ -131,25 +139,35 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-app.get("/api/config", (_req, res) => {
-  const sample = TEST_MODE ? sampleTimeEntries() : null;
-  const bounds = sample ? sampleBounds(sample) : null;
-  res.json({
-    startDate: bounds?.start ?? START_DATE,
-    targetHoursPerWeek: TARGET_HOURS_PER_WEEK,
-    hoursPerDay: HOURS_PER_DAY,
-    daysPerWeek: DAYS_PER_WEEK,
-    testMode: TEST_MODE,
-    dataEndDate: bounds?.end,
-  });
-});
+app.get(
+  "/api/config",
+  asyncHandler(async (_req, res) => {
+    const sample = TEST_MODE ? sampleTimeEntries() : null;
+    const bounds = sample ? sampleBounds(sample) : null;
+    const store = await readStore();
+    const tokenSource = store.togglApiToken ? "store" : TOGGL_API_TOKEN ? "env" : "none";
+    const tokenConfigured = tokenSource !== "none";
+
+    res.json({
+      startDate: bounds?.start ?? START_DATE,
+      targetHoursPerWeek: TARGET_HOURS_PER_WEEK,
+      hoursPerDay: HOURS_PER_DAY,
+      daysPerWeek: DAYS_PER_WEEK,
+      testMode: TEST_MODE,
+      dataEndDate: bounds?.end,
+      togglTokenConfigured: tokenConfigured,
+      togglTokenSource: tokenSource,
+      needsTogglToken: !TEST_MODE && !tokenConfigured,
+    });
+  })
+);
 
 app.get(
   "/api/days-off",
   authMiddleware,
   asyncHandler(async (_req, res) => {
     const store = await readStore();
-    res.json(store);
+    res.json({ daysOff: store.daysOff });
   })
 );
 
@@ -164,9 +182,9 @@ app.put(
 
     const sanitized = Array.from(new Set(daysOff.map(Number).filter((n) => n >= 0 && n < 7))).sort();
     const store = await readStore();
-    store.daysOff[weekStart] = sanitized;
-    await writeStore(store);
-    res.json(store);
+    const next = { ...store, daysOff: { ...store.daysOff, [weekStart]: sanitized } } satisfies AppStore;
+    await writeStore(next);
+    res.json({ daysOff: next.daysOff });
   })
 );
 
@@ -174,14 +192,16 @@ app.get(
   "/api/hours",
   authMiddleware,
   asyncHandler(async (_req, res) => {
-    if (!TOGGL_API_TOKEN && !TEST_MODE) {
-      return res.status(500).json({ error: "Missing TOGGL_API_TOKEN in environment" });
+    const store = await readStore();
+    const token = store.togglApiToken || TOGGL_API_TOKEN;
+    if (!token && !TEST_MODE) {
+      return res.status(400).json({ error: "TOGGL_API_TOKEN fehlt. Bitte im Frontend hinterlegen." });
     }
 
     const entries = TEST_MODE
       ? sampleTimeEntries()
       : await fetchMyTimeEntries({
-          token: TOGGL_API_TOKEN,
+          token: token ?? "",
           startDate: START_DATE,
           meUrl: TOGGL_API_ME_URL,
           endDate: new Date().toISOString(),
@@ -214,18 +234,42 @@ app.post(
   })
 );
 
-app.post(
-  "/api/auth/logout",
-  (_req, res) => {
-    res.clearCookie("session", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      domain: COOKIE_DOMAIN,
-    });
-    res.json({ ok: true });
-  }
+app.get(
+  "/api/toggl-token",
+  authMiddleware,
+  asyncHandler(async (_req, res) => {
+    const store = await readStore();
+    const source = store.togglApiToken ? "store" : TOGGL_API_TOKEN ? "env" : "none";
+    res.json({ configured: source !== "none", source });
+  })
 );
+
+app.post(
+  "/api/toggl-token",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const { token } = req.body ?? {};
+    if (typeof token !== "string" || !token.trim()) {
+      return res.status(400).json({ error: "token is required" });
+    }
+
+    const store = await readStore();
+    const next = { ...store, togglApiToken: token.trim() } satisfies AppStore;
+    await writeStore(next);
+
+    res.json({ configured: true, source: "store" });
+  })
+);
+
+app.post("/api/auth/logout", (_req, res) => {
+  res.clearCookie("session", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    domain: COOKIE_DOMAIN,
+  });
+  res.json({ ok: true });
+});
 
 app.get("/api/auth/me", authMiddleware, (req, res) => {
   const user = req.user;

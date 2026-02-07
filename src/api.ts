@@ -26,6 +26,15 @@ export async function getConfig(): Promise<Config> {
   return request<Config>("/api/config");
 }
 
+export async function saveTogglToken(
+  token: string
+): Promise<{ configured: boolean; source: "store" | "env" | "none" }> {
+  return request<{ configured: boolean; source: "store" | "env" | "none" }>("/api/toggl-token", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
 export async function getCurrentUser(): Promise<{ user: { email: string; name?: string; picture?: string } }> {
   return request<{ user: { email: string; name?: string; picture?: string } }>("/api/auth/me");
 }

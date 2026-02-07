@@ -51,7 +51,7 @@ toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares
    ```
 2. Copy `.env.example` to `.env` and adjust values:
    - `TEST_MODE`: keep `true` to use mocked data; set to `false` for live Toggl calls.
-   - `TOGGL_API_TOKEN`: when live, grab your personal token from https://track.toggl.com/profile.
+   - `TOGGL_API_TOKEN`: optional. Leave empty and enter it once in the UI after Google-Login, or prefill it here (https://track.toggl.com/profile).
    - `START_DATE`: Monday of the first week you want included (ISO date, e.g., `2026-01-01`).
    - `TARGET_HOURS_PER_WEEK` / `HOURS_PER_DAY` / `DAYS_PER_WEEK`: tune to your schedule for accurate UI targets.
    - `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID`: same value from Google Cloud console (Web client).
@@ -76,20 +76,20 @@ toggl-trackr pulls your Toggl Track entries, rolls them up by week, and compares
 
 ### Configuration Reference <a id="configuration-reference"></a>
 
-| Variable                | Description                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| `TEST_MODE`             | `true` uses bundled sample entries; `false` calls Toggl live API.                                 |
-| `TOGGL_API_TOKEN`       | Personal Toggl API token (https://track.toggl.com/profile); only used in live mode.               |
-| `TOGGL_API_ME_URL`      | Base URL for Toggl v9 `me` endpoint; change only if Toggl moves.                                  |
-| `START_DATE`            | Monday for the first week to include in rollups (ISO date).                                       |
-| `TARGET_HOURS_PER_WEEK` | Weekly target hours shown in UI.                                                                  |
-| `HOURS_PER_DAY`         | Expected hours per working day; used to reduce targets when marking days off.                     |
-| `DAYS_PER_WEEK`         | Working days per week for UI reference.                                                           |
-| `GOOGLE_CLIENT_ID`      | OAuth Client ID from Google Cloud (Web type). Used server-side to verify ID tokens.               |
-| `VITE_GOOGLE_CLIENT_ID` | Same value, exposed to the frontend build (Vite only reads envs prefixed with `VITE_`).           |
-| `JWT_SECRET`            | Secret for signing auth cookies; set to a strong random string.                                   |
+| Variable                | Description                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `TEST_MODE`             | `true` uses bundled sample entries; `false` calls Toggl live API.                                                   |
+| `TOGGL_API_TOKEN`       | Personal Toggl API token (https://track.toggl.com/profile); optional if you enter it in the UI after login.         |
+| `TOGGL_API_ME_URL`      | Base URL for Toggl v9 `me` endpoint; change only if Toggl moves.                                                    |
+| `START_DATE`            | Monday for the first week to include in rollups (ISO date).                                                         |
+| `TARGET_HOURS_PER_WEEK` | Weekly target hours shown in UI.                                                                                    |
+| `HOURS_PER_DAY`         | Expected hours per working day; used to reduce targets when marking days off.                                       |
+| `DAYS_PER_WEEK`         | Working days per week for UI reference.                                                                             |
+| `GOOGLE_CLIENT_ID`      | OAuth Client ID from Google Cloud (Web type). Used server-side to verify ID tokens.                                 |
+| `VITE_GOOGLE_CLIENT_ID` | Same value, exposed to the frontend build (Vite only reads envs prefixed with `VITE_`).                             |
+| `JWT_SECRET`            | Secret for signing auth cookies; set to a strong random string.                                                     |
 | `FRONTEND_ORIGIN`       | Allowed origin(s) for CORS; comma-separated list (e.g., `http://localhost:51731,https://toggl-trackr.ouder.space`). |
-| `COOKIE_DOMAIN`         | Optional cookie domain for production (e.g., `.ouder.space`); leave empty for localhost/dev.      |
+| `COOKIE_DOMAIN`         | Optional cookie domain for production (e.g., `.ouder.space`); leave empty for localhost/dev.                        |
 
 ### Usage <a id="usage"></a>
 

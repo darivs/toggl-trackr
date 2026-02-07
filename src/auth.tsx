@@ -79,5 +79,9 @@ export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
     window.google.accounts.id.prompt();
   }, [ready, onLogin, onError]);
 
-  return <div className="flex flex-col items-center gap-3"><div ref={buttonRef} /></div>;
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div ref={buttonRef} />
+    </div>
+  );
 };

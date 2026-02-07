@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getConfig, getCurrentUser, getDaysOff, getHours, logout, setDaysOff } from "./api";
+import { getConfig, getCurrentUser, getDaysOff, getHours, logout, saveTogglToken, setDaysOff } from "./api";
 import CurrentWeek from "./components/CurrentWeek";
 import WorkingTimeAccount from "./components/WorkingTimeAccount";
-import ThemeToggle from "./components/ThemeToggle";
+import SettingsMenu from "./components/SettingsMenu";
 import WeekHistory from "./components/WeekHistory";
 import type { Config, DaysOffMap, WeekSummary } from "./utils/hours";
 import { computeSummary } from "./utils/hours";
@@ -16,8 +16,11 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [tokenInput, setTokenInput] = useState("");
+  const [savingToken, setSavingToken] = useState(false);
 
-  const loadProtected = async () => {
+  const loadProtected = async (opts?: { force?: boolean }) => {
+    if (!opts?.force && config && !config.testMode && config.needsTogglToken) return;
     try {
       const [hours, offs] = await Promise.all([getHours().catch(() => []), getDaysOff().catch(() => ({}))]);
       setWeeks(hours);
@@ -75,6 +78,7 @@ const App: React.FC = () => {
   const handleLogin = async (u: AuthUser) => {
     setUser(u);
     setError(null);
+    if (!config?.testMode && config?.needsTogglToken) return;
     await loadProtected();
   };
 
@@ -82,41 +86,62 @@ const App: React.FC = () => {
     try {
       await logout();
       setUser(null);
+      setWeeks([]);
+      setDaysOffState({});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Logout fehlgeschlagen");
     }
   };
 
+  const handleSaveToken = async (token: string) => {
+    if (!token.trim()) {
+      setError("Bitte einen gültigen Toggl API Token eingeben.");
+      return false;
+    }
+    setSavingToken(true);
+    setError(null);
+    try {
+      await saveTogglToken(token.trim());
+      if (token === tokenInput) {
+        setTokenInput("");
+      }
+      setConfig((prev) =>
+        prev ? { ...prev, needsTogglToken: false, togglTokenConfigured: true, togglTokenSource: "store" } : prev
+      );
+      await loadProtected({ force: true });
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Token konnte nicht gespeichert werden";
+      setError(msg);
+      return false;
+    } finally {
+      setSavingToken(false);
+    }
+  };
+
+  const tokenRequired = config && !config.testMode && config.needsTogglToken;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-subtle">made with ♥</p>
-            <h1 className="text-2xl font-semibold">toggl-trackr</h1>
+      {user ? (
+        <header className="sticky top-0 z-10 bg-background/80 backdrop-blur">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-subtle">made with ♥</p>
+              <h1 className="text-2xl font-semibold">toggl-trackr</h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <SettingsMenu
+                onLogout={handleLogout}
+                user={user}
+                config={config}
+                savingToken={savingToken}
+                onSaveToken={handleSaveToken}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            {user ? (
-              <>
-                <div className="flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-sm">
-                  {user.picture ? <img src={user.picture} className="h-7 w-7 rounded-full" alt="Avatar" /> : null}
-                  <div className="leading-tight">
-                    <div className="font-medium">{user.name ?? user.email}</div>
-                    <div className="text-xs text-subtle">{user.email}</div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="rounded-full border border-muted px-3 py-1 text-sm text-subtle hover:border-foreground hover:text-foreground"
-                >
-                  Logout
-                </button>
-              </>
-            ) : null}
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       <main className="mx-auto flex min-h-[calc(100vh-140px)] max-w-6xl flex-col items-center justify-center gap-8 px-6 pb-16 pt-6">
         {error && (
@@ -126,13 +151,38 @@ const App: React.FC = () => {
         )}
 
         {!user ? (
-          <div className="w-full max-w-md rounded-2xl border border-muted/60 bg-muted/20 p-6 text-center shadow-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-muted/60 bg-muted/20 p-6 text-center shadow-sm">
             <h2 className="mb-2 text-xl font-semibold">Anmelden</h2>
-            <p className="mb-4 text-subtle">Bitte mit Google anmelden, um deine Toggl-Zeiten zu laden.</p>
-            <GoogleLogin
-              onLogin={handleLogin}
-              onError={(msg) => setError(msg)}
-            />
+            <p className="mb-4 text-subtle">Mit Google anmelden, um deine Toggl-Zeiten zu laden.</p>
+            <GoogleLogin onLogin={handleLogin} onError={(msg) => setError(msg)} />
+          </div>
+        ) : tokenRequired ? (
+          <div className="w-full max-w-lg rounded-2xl border border-muted/60 bg-muted/20 p-6 shadow-sm">
+            <h2 className="mb-2 text-xl font-semibold">Toggl API Token hinterlegen</h2>
+            <p className="mb-4 text-subtle">
+              Dein Google-Login ist erledigt. Bitte füge jetzt deinen persönlichen Toggl API Token hinzu, damit die
+              Zeiten geladen werden können. Du findest ihn unter{" "}
+              <a className="underline" href="https://track.toggl.com/profile" target="_blank" rel="noreferrer">
+                track.toggl.com/profile
+              </a>
+              .
+            </p>
+            <div className="flex flex-col gap-3">
+              <input
+                type="password"
+                className="w-full rounded-xl border border-muted bg-background px-3 py-2 text-sm focus:border-foreground focus:outline-none"
+                placeholder="Toggl API Token"
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+              />
+              <button
+                onClick={() => void handleSaveToken(tokenInput)}
+                disabled={savingToken || !tokenInput.trim()}
+                className="rounded-xl bg-foreground px-4 py-2 text-sm font-medium text-background disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {savingToken ? "Speichere…" : "Token speichern"}
+              </button>
+            </div>
           </div>
         ) : summary ? (
           <div className="w-full max-w-4xl flex flex-col items-center gap-6">
