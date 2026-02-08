@@ -22,13 +22,30 @@ type SettingsMenuProps = {
   config?: Config | null;
   onSaveToken: (token: string) => Promise<boolean | void>;
   savingToken?: boolean;
+  onSavePreferences: (prefs: {
+    targetHoursPerWeek: number;
+    hoursPerDay: number;
+    daysPerWeek: number;
+  }) => Promise<boolean | void>;
+  savingPreferences?: boolean;
 };
 
-const SettingsMenu: React.FC<SettingsMenuProps> = ({ onLogout, user, config, onSaveToken, savingToken }) => {
+const SettingsMenu: React.FC<SettingsMenuProps> = ({
+  onLogout,
+  user,
+  config,
+  onSaveToken,
+  savingToken,
+  onSavePreferences,
+  savingPreferences,
+}) => {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [tokenValue, setTokenValue] = useState("");
+  const [targetHoursPerWeek, setTargetHoursPerWeek] = useState<number | "">("");
+  const [hoursPerDay, setHoursPerDay] = useState<number | "">("");
+  const [daysPerWeek, setDaysPerWeek] = useState<number | "">("");
   const tokenSourceLabel =
     config?.togglTokenSource === "env"
       ? "aus .env"
@@ -70,6 +87,24 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onLogout, user, config, onS
     const success = await onSaveToken(tokenValue);
     if (success) {
       setTokenValue("");
+      setOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    setTargetHoursPerWeek(config?.targetHoursPerWeek ?? "");
+    setHoursPerDay(config?.hoursPerDay ?? "");
+    setDaysPerWeek(config?.daysPerWeek ?? "");
+  }, [config]);
+
+  const handleSavePrefs = async () => {
+    if (targetHoursPerWeek === "" || hoursPerDay === "" || daysPerWeek === "") return;
+    const success = await onSavePreferences({
+      targetHoursPerWeek,
+      hoursPerDay,
+      daysPerWeek,
+    });
+    if (success) {
       setOpen(false);
     }
   };
@@ -169,6 +204,58 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onLogout, user, config, onS
             </a>
             .
           </p>
+
+          <div className="my-3 h-px bg-muted" />
+
+          <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle">Arbeitszeiten</div>
+          <div className="space-y-2">
+            <label className="flex items-center justify-between rounded-xl border border-muted/60 bg-muted/10 px-3 py-2 text-sm">
+              <span>Wochenstunden</span>
+              <input
+                type="number"
+                min={1}
+                max={120}
+                className="ml-3 w-24 rounded-lg border border-muted/50 bg-background px-2 py-1 text-right text-sm focus:border-primary/60 focus:outline-none"
+                value={targetHoursPerWeek}
+                onChange={(e) => setTargetHoursPerWeek(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </label>
+            <label className="flex items-center justify-between rounded-xl border border-muted/60 bg-muted/10 px-3 py-2 text-sm">
+              <span>Stunden pro Tag</span>
+              <input
+                type="number"
+                min={1}
+                max={24}
+                className="ml-3 w-24 rounded-lg border border-muted/50 bg-background px-2 py-1 text-right text-sm focus:border-primary/60 focus:outline-none"
+                value={hoursPerDay}
+                onChange={(e) => setHoursPerDay(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </label>
+            <label className="flex items-center justify-between rounded-xl border border-muted/60 bg-muted/10 px-3 py-2 text-sm">
+              <span>Arbeitstage/Woche</span>
+              <input
+                type="number"
+                min={1}
+                max={7}
+                className="ml-3 w-24 rounded-lg border border-muted/50 bg-background px-2 py-1 text-right text-sm focus:border-primary/60 focus:outline-none"
+                value={daysPerWeek}
+                onChange={(e) => setDaysPerWeek(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleSavePrefs}
+              disabled={
+                savingPreferences ||
+                targetHoursPerWeek === "" ||
+                hoursPerDay === "" ||
+                daysPerWeek === ""
+              }
+              className="flex h-10 w-full items-center justify-center rounded-xl bg-foreground px-3 text-sm font-semibold text-background disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {savingPreferences ? "Speichere…" : "Arbeitszeiten speichern"}
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

@@ -35,6 +35,22 @@ export async function saveTogglToken(
   });
 }
 
+export async function saveUserConfig(payload: {
+  targetHoursPerWeek?: number;
+  hoursPerDay?: number;
+  daysPerWeek?: number;
+}): Promise<Pick<Config, "targetHoursPerWeek" | "hoursPerDay" | "daysPerWeek">> {
+  const data = await request<{ config: { targetHoursPerWeek: number; hoursPerDay: number; daysPerWeek: number } }>(
+    "/api/user-config",
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return data.config;
+}
+
 export async function getCurrentUser(): Promise<{ user: { email: string; name?: string; picture?: string } }> {
   return request<{ user: { email: string; name?: string; picture?: string } }>("/api/auth/me");
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getConfig, getCurrentUser, getDaysOff, getHours, logout, saveTogglToken, setDaysOff } from "./api";
+import { getConfig, getCurrentUser, getDaysOff, getHours, logout, saveTogglToken, saveUserConfig, setDaysOff } from "./api";
 import CurrentWeek from "./components/CurrentWeek";
 import WorkingTimeAccount from "./components/WorkingTimeAccount";
 import SettingsMenu from "./components/SettingsMenu";
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [tokenInput, setTokenInput] = useState("");
   const [savingToken, setSavingToken] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   const loadProtected = async (opts?: { force?: boolean }) => {
     if (!opts?.force && config && !config.testMode && config.needsTogglToken) return;
@@ -130,6 +131,35 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSavePreferences = async (prefs: {
+    targetHoursPerWeek: number;
+    hoursPerDay: number;
+    daysPerWeek: number;
+  }) => {
+    setSavingPreferences(true);
+    setError(null);
+    try {
+      const saved = await saveUserConfig(prefs);
+      setConfig((prev) =>
+        prev
+          ? {
+              ...prev,
+              targetHoursPerWeek: saved.targetHoursPerWeek,
+              hoursPerDay: saved.hoursPerDay,
+              daysPerWeek: saved.daysPerWeek,
+            }
+          : prev
+      );
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Einstellungen konnten nicht gespeichert werden";
+      setError(msg);
+      return false;
+    } finally {
+      setSavingPreferences(false);
+    }
+  };
+
   const tokenRequired = config && !config.testMode && config.needsTogglToken;
 
   return (
@@ -148,6 +178,8 @@ const App: React.FC = () => {
                 config={config}
                 savingToken={savingToken}
                 onSaveToken={handleSaveToken}
+                savingPreferences={savingPreferences}
+                onSavePreferences={handleSavePreferences}
               />
             </div>
           </div>
