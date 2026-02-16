@@ -197,7 +197,15 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!user ? (
+        {loading ? (
+          <div className="flex flex-col items-center gap-3 text-subtle">
+            <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Lade…</span>
+          </div>
+        ) : !user ? (
           <div className="w-full max-w-lg rounded-2xl border border-muted/60 bg-muted/20 p-6 text-center shadow-sm">
             <h2 className="mb-2 text-xl font-semibold">Anmelden</h2>
             <p className="mb-4 text-subtle">Mit Google anmelden, um deine Toggl-Zeiten zu laden.</p>
@@ -231,7 +239,7 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
-        ) : loading || loadingData ? (
+        ) : loadingData ? (
           <div className="flex flex-col items-center gap-3 text-subtle">
             <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
