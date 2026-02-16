@@ -91,7 +91,7 @@ const App: React.FC = () => {
 
       return;
     }
-    await loadProtected();
+    await loadProtected({ force: true });
   };
 
   const handleLogout = async () => {
