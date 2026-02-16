@@ -173,9 +173,15 @@ const App: React.FC = () => {
       {user ? (
         <header className="sticky top-0 z-10 bg-background/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-            <div>
+            <div
+              className="group relative cursor-pointer select-none hover:animate-wiggle"
+              onClick={() => window.open("https://github.com/darivs/toggl-trackr", "_blank")}
+            >
               <p className="text-xs uppercase tracking-[0.2em] text-subtle">made with ♥</p>
               <h1 className="text-2xl font-semibold">toggl-trackr</h1>
+              <span className="pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] font-medium text-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                GitHub Repo
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <SettingsMenu

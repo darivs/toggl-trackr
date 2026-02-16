@@ -36,9 +36,15 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        wiggle: {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-2deg)" },
+          "75%": { transform: "rotate(2deg)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.4s ease-out",
+        wiggle: "wiggle 0.3s ease-in-out",
       },
     },
   },
