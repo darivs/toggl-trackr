@@ -24,10 +24,29 @@ export async function migrate() {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS days_off (
       id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
       week_start TEXT NOT NULL,
       day_index INTEGER NOT NULL,
-      UNIQUE(week_start, day_index)
+      UNIQUE(user_id, week_start, day_index)
     )
+  `);
+
+  // Migration: add user_id column if table existed without it
+  await db.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'days_off' AND column_name = 'user_id'
+      ) THEN
+        -- Drop old data (no user association possible)
+        DELETE FROM days_off;
+        ALTER TABLE days_off ADD COLUMN user_id INTEGER NOT NULL REFERENCES users(id);
+        -- Replace old unique constraint with new one
+        ALTER TABLE days_off DROP CONSTRAINT IF EXISTS days_off_week_start_day_index_unique;
+        ALTER TABLE days_off ADD CONSTRAINT days_off_user_id_week_start_day_index_unique UNIQUE(user_id, week_start, day_index);
+      END IF;
+    END $$;
   `);
 
   await db.execute(sql`

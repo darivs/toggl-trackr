@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import express, { type NextFunction, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db, migrate, schema } from "./db/index.js";
 import { aggregateByWeek, fetchMyTimeEntries, sampleTimeEntries, WeekSummary, TogglEntry } from "./toggl.js";
 
@@ -201,14 +201,16 @@ app.get(
 app.get(
   "/api/days-off",
   authMiddleware,
-  asyncHandler(async (_req, res) => {
-    const rows = await db.select().from(schema.daysOff);
+  asyncHandler(async (req, res) => {
+    const userId = await getUserId(req.user!.email);
+    if (!userId) return res.status(401).json({ error: "User not found" });
+
+    const rows = await db.select().from(schema.daysOff).where(eq(schema.daysOff.userId, userId));
     const daysOffMap: Record<string, number[]> = {};
     for (const row of rows) {
       if (!daysOffMap[row.weekStart]) daysOffMap[row.weekStart] = [];
       daysOffMap[row.weekStart].push(row.dayIndex);
     }
-    // Sort each week's day indices
     for (const key of Object.keys(daysOffMap)) {
       daysOffMap[key].sort((a, b) => a - b);
     }
@@ -220,6 +222,9 @@ app.put(
   "/api/days-off",
   authMiddleware,
   asyncHandler(async (req, res) => {
+    const userId = await getUserId(req.user!.email);
+    if (!userId) return res.status(401).json({ error: "User not found" });
+
     const { weekStart, daysOff: daysOffInput } = req.body ?? {};
     if (typeof weekStart !== "string" || !Array.isArray(daysOffInput)) {
       return res.status(400).json({ error: "weekStart (string) and daysOff (array) are required" });
@@ -227,14 +232,16 @@ app.put(
 
     const sanitized = Array.from(new Set(daysOffInput.map(Number).filter((n) => n >= 0 && n < 7))).sort();
 
-    // Delete existing days-off for this week, then insert new ones
-    await db.delete(schema.daysOff).where(eq(schema.daysOff.weekStart, weekStart));
+    // Delete existing days-off for this user+week, then insert new ones
+    await db.delete(schema.daysOff).where(
+      and(eq(schema.daysOff.userId, userId), eq(schema.daysOff.weekStart, weekStart))
+    );
     if (sanitized.length > 0) {
-      await db.insert(schema.daysOff).values(sanitized.map((dayIndex) => ({ weekStart, dayIndex })));
+      await db.insert(schema.daysOff).values(sanitized.map((dayIndex) => ({ userId, weekStart, dayIndex })));
     }
 
-    // Return all days-off (same format as GET)
-    const rows = await db.select().from(schema.daysOff);
+    // Return this user's days-off
+    const rows = await db.select().from(schema.daysOff).where(eq(schema.daysOff.userId, userId));
     const daysOffMap: Record<string, number[]> = {};
     for (const row of rows) {
       if (!daysOffMap[row.weekStart]) daysOffMap[row.weekStart] = [];

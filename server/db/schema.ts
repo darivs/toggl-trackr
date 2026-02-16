@@ -12,10 +12,13 @@ export const daysOff = pgTable(
   "days_off",
   {
     id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .references(() => users.id)
+      .notNull(),
     weekStart: text("week_start").notNull(),
     dayIndex: integer("day_index").notNull(),
   },
-  (t) => [unique().on(t.weekStart, t.dayIndex)]
+  (t) => [unique().on(t.userId, t.weekStart, t.dayIndex)]
 );
 
 export const togglTokens = pgTable(
