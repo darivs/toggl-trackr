@@ -19,7 +19,7 @@ const App: React.FC = () => {
   const [tokenInput, setTokenInput] = useState("");
   const [savingToken, setSavingToken] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
-  const [loadingData, setLoadingData] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
   const loadProtected = async (opts?: { force?: boolean }) => {
     if (!opts?.force && config && !config.testMode && config.needsTogglToken) return;
@@ -47,7 +47,9 @@ const App: React.FC = () => {
         }
         if (me?.user) {
           setUser(me.user);
-          await loadProtected();
+          await loadProtected({ force: true });
+        } else {
+          setLoadingData(false);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unbekannter Fehler");
