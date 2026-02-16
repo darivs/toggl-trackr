@@ -16,6 +16,7 @@ export type Config = {
   togglTokenConfigured?: boolean;
   togglTokenSource?: "store" | "env" | "none";
   needsTogglToken?: boolean;
+  googleClientId?: string;
 };
 
 export type ComputedWeek = {

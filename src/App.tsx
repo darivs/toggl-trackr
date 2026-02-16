@@ -201,7 +201,7 @@ const App: React.FC = () => {
           <div className="w-full max-w-lg rounded-2xl border border-muted/60 bg-muted/20 p-6 text-center shadow-sm">
             <h2 className="mb-2 text-xl font-semibold">Anmelden</h2>
             <p className="mb-4 text-subtle">Mit Google anmelden, um deine Toggl-Zeiten zu laden.</p>
-            <GoogleLogin onLogin={handleLogin} onError={(msg) => setError(msg)} />
+            <GoogleLogin onLogin={handleLogin} onError={(msg) => setError(msg)} googleClientId={config?.googleClientId} />
           </div>
         ) : tokenRequired ? (
           <div className="w-full max-w-lg rounded-2xl border border-muted/60 bg-muted/20 p-6 shadow-sm">

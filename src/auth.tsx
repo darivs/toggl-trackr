@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { loginWithGoogle } from "./api";
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-
 export type AuthUser = {
   email: string;
   name?: string | null;
@@ -12,6 +10,7 @@ export type AuthUser = {
 type Props = {
   onLogin: (user: AuthUser) => void;
   onError: (message: string) => void;
+  googleClientId?: string;
 };
 
 declare global {
@@ -30,13 +29,13 @@ declare global {
   }
 }
 
-export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
+export const GoogleLogin: React.FC<Props> = ({ onLogin, onError, googleClientId }) => {
   const [ready, setReady] = useState(false);
   const buttonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) {
-      onError("Fehlende VITE_GOOGLE_CLIENT_ID in der Umgebung");
+    if (!googleClientId) {
+      onError("Fehlende Google Client ID (prüfe Backend-Konfiguration)");
 
       return;
     }
@@ -55,10 +54,10 @@ export const GoogleLogin: React.FC<Props> = ({ onLogin, onError }) => {
   }, [onError]);
 
   useEffect(() => {
-    if (!ready || !window.google || !buttonRef.current || !GOOGLE_CLIENT_ID) return;
+    if (!ready || !window.google || !buttonRef.current || !googleClientId) return;
 
     window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
+      client_id: googleClientId,
       callback: (payload) => {
         (async () => {
           try {

@@ -196,6 +196,7 @@ app.get(
       togglTokenConfigured: tokenConfigured,
       togglTokenSource: tokenSource,
       needsTogglToken: !TEST_MODE && !tokenConfigured,
+      googleClientId: GOOGLE_CLIENT_ID || undefined,
     });
   })
 );
