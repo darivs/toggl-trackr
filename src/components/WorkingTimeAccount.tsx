@@ -3,9 +3,10 @@ import { Info } from "lucide-react";
 
 type Props = {
   minutes: number;
+  rateLimited?: boolean;
 };
 
-const WorkingTimeAccount: React.FC<Props> = ({ minutes }) => {
+const WorkingTimeAccount: React.FC<Props> = ({ minutes, rateLimited }) => {
   const positive = minutes >= 0;
   const tone = positive ? "text-emerald-400" : "text-rose-400";
   const abs = Math.abs(minutes);
@@ -27,23 +28,32 @@ const WorkingTimeAccount: React.FC<Props> = ({ minutes }) => {
           </span>
         </span>
       </div>
-      <div className="flex items-center gap-3">
-        {sign && <span className={`text-[6rem] md:text-[6rem] mb-6 font-semibold leading-none ${tone}`}>{sign}</span>}
-        <div className="flex items-end gap-0">
-          <span
-            className={`text-[8rem] md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-semibold leading-none ${tone}`}
-          >
-            {hours}
+      {rateLimited ? (
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-[8rem] md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-semibold leading-none text-subtle">
+            ?
           </span>
-          <span className="mb-7 text-[2rem] md:text-[4rem] text-subtle mr-7">h</span>
-          <span
-            className={`text-[8rem] md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-semibold leading-none ${tone}`}
-          >
-            {String(mins).padStart(2, "0")}
-          </span>
-          <span className="mb-7 text-[2rem] md:text-[4rem] text-subtle">m</span>
+          <span className="text-sm text-subtle">API-Anfragen aufgebraucht – bitte kurz warten</span>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-3">
+          {sign && <span className={`text-[6rem] md:text-[6rem] mb-6 font-semibold leading-none ${tone}`}>{sign}</span>}
+          <div className="flex items-end gap-0">
+            <span
+              className={`text-[8rem] md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-semibold leading-none ${tone}`}
+            >
+              {hours}
+            </span>
+            <span className="mb-7 text-[2rem] md:text-[4rem] text-subtle mr-7">h</span>
+            <span
+              className={`text-[8rem] md:text-[12rem] lg:text-[14rem] xl:text-[16rem] font-semibold leading-none ${tone}`}
+            >
+              {String(mins).padStart(2, "0")}
+            </span>
+            <span className="mb-7 text-[2rem] md:text-[4rem] text-subtle">m</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

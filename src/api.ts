@@ -5,6 +5,14 @@ type ApiError = {
   detail?: string;
 };
 
+export class ApiRequestError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     headers: {
@@ -16,7 +24,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as ApiError;
-    throw new Error(body.error ?? `Request failed with status ${res.status}`);
+    throw new ApiRequestError(body.error ?? `Request failed with status ${res.status}`, res.status);
   }
 
   return (await res.json()) as T;

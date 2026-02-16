@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getConfig, getCurrentUser, getDaysOff, getHours, logout, saveTogglToken, saveUserConfig, setDaysOff } from "./api";
+import { ApiRequestError, getConfig, getCurrentUser, getDaysOff, getHours, logout, saveTogglToken, saveUserConfig, setDaysOff } from "./api";
 import CurrentWeek from "./components/CurrentWeek";
 import WorkingTimeAccount from "./components/WorkingTimeAccount";
 import SettingsMenu from "./components/SettingsMenu";
@@ -20,16 +20,22 @@ const App: React.FC = () => {
   const [savingToken, setSavingToken] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  const [rateLimited, setRateLimited] = useState(false);
 
   const loadProtected = async (opts?: { force?: boolean }) => {
     if (!opts?.force && config && !config.testMode && config.needsTogglToken) return;
     try {
       setLoadingData(true);
-      const [hours, offs] = await Promise.all([getHours().catch(() => []), getDaysOff().catch(() => ({}))]);
+      setRateLimited(false);
+      const [hours, offs] = await Promise.all([getHours(), getDaysOff().catch(() => ({}))]);
       setWeeks(hours);
       setDaysOffState(offs);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Konnte Daten nicht laden");
+      if (err instanceof ApiRequestError && err.status === 429) {
+        setRateLimited(true);
+      } else {
+        setError(err instanceof Error ? err.message : "Konnte Daten nicht laden");
+      }
     } finally {
       setLoadingData(false);
     }
@@ -258,7 +264,7 @@ const App: React.FC = () => {
         ) : summary ? (
           <div className="w-full max-w-4xl flex flex-col items-center gap-6">
             <div className="w-full">
-              <WorkingTimeAccount minutes={summary.plusAccountMinutes} />
+              <WorkingTimeAccount minutes={summary.plusAccountMinutes} rateLimited={rateLimited} />
             </div>
             <Tabs
               tabs={[

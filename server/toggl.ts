@@ -41,7 +41,7 @@ export async function fetchMyTimeEntries(opts: {
   url.searchParams.set("end_date", endDate);
 
   const res = await fetch(url, { headers: authHeader(token) });
-  console.log(res);
+  if (res.status === 429) throw new Error("RATE_LIMIT");
   if (!res.ok) throw new Error(`Toggl API responded ${res.status} ${res.statusText}`);
 
   const body = await res.json();

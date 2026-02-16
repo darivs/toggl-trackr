@@ -309,14 +309,22 @@ app.get(
       return res.status(400).json({ error: "TOGGL_API_TOKEN fehlt. Bitte im Frontend hinterlegen." });
     }
 
-    const entries = TEST_MODE
-      ? sampleTimeEntries()
-      : await fetchMyTimeEntries({
-          token: token ?? "",
-          startDate: START_DATE,
-          meUrl: TOGGL_API_ME_URL,
-          endDate: new Date().toISOString(),
-        });
+    let entries: TogglEntry[];
+    try {
+      entries = TEST_MODE
+        ? sampleTimeEntries()
+        : await fetchMyTimeEntries({
+            token: token ?? "",
+            startDate: START_DATE,
+            meUrl: TOGGL_API_ME_URL,
+            endDate: new Date().toISOString(),
+          });
+    } catch (err) {
+      if (err instanceof Error && err.message === "RATE_LIMIT") {
+        return res.status(429).json({ error: "Toggl API Rate-Limit erreicht. Bitte warte kurz." });
+      }
+      throw err;
+    }
 
     const weeks: WeekSummary[] = aggregateByWeek(entries);
     res.json({ weeks, config: userConfig });
