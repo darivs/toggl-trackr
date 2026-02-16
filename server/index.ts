@@ -1,3 +1,5 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
@@ -402,6 +404,14 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
   const user = req.user;
   if (!user) return res.status(401).json({ error: "Unauthenticated" });
   res.json({ user });
+});
+
+// Serve frontend static files in production
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distPath = path.resolve(__dirname, "../dist");
+app.use(express.static(distPath));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 // Run migrations then start server
