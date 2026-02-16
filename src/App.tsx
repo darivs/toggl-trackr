@@ -19,15 +19,19 @@ const App: React.FC = () => {
   const [tokenInput, setTokenInput] = useState("");
   const [savingToken, setSavingToken] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
 
   const loadProtected = async (opts?: { force?: boolean }) => {
     if (!opts?.force && config && !config.testMode && config.needsTogglToken) return;
     try {
+      setLoadingData(true);
       const [hours, offs] = await Promise.all([getHours().catch(() => []), getDaysOff().catch(() => ({}))]);
       setWeeks(hours);
       setDaysOffState(offs);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Konnte Daten nicht laden");
+    } finally {
+      setLoadingData(false);
     }
   };
 
@@ -227,6 +231,14 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
+        ) : loading || loadingData ? (
+          <div className="flex flex-col items-center gap-3 text-subtle">
+            <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span>Lade Daten…</span>
+          </div>
         ) : summary ? (
           <div className="w-full max-w-4xl flex flex-col items-center gap-6">
             <div className="w-full">
@@ -259,7 +271,7 @@ const App: React.FC = () => {
             </Tabs>
           </div>
         ) : (
-          <div className="text-subtle">{loading ? "Lade Daten…" : "Keine Daten verfügbar."}</div>
+          <div className="text-subtle">Keine Daten verfügbar.</div>
         )}
       </main>
     </div>
