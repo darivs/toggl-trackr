@@ -33,6 +33,19 @@ export const togglTokens = pgTable(
   (t) => [unique().on(t.userId)]
 );
 
+export const payouts = pgTable(
+  "payouts",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .references(() => users.id)
+      .notNull(),
+    weekStart: text("week_start").notNull(),
+    minutes: integer("minutes").notNull(),
+  },
+  (t) => [unique().on(t.userId, t.weekStart)]
+);
+
 export const userConfigs = pgTable(
   "user_configs",
   {

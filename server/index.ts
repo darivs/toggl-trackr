@@ -398,6 +398,65 @@ app.post(
   })
 );
 
+app.get(
+  "/api/payouts",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const userId = await getUserId(req.user!.email);
+    if (!userId) return res.status(401).json({ error: "User not found" });
+
+    const rows = await db.select().from(schema.payouts).where(eq(schema.payouts.userId, userId));
+    const payouts: Record<string, number> = {};
+    for (const row of rows) {
+      payouts[row.weekStart] = row.minutes;
+    }
+
+    // Sample payout for test mode: 1h payout on week of 2026-01-19
+    if (TEST_MODE && Object.keys(payouts).length === 0) {
+      payouts["2026-01-19"] = 60;
+    }
+
+    res.json({ payouts });
+  })
+);
+
+app.put(
+  "/api/payouts",
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const userId = await getUserId(req.user!.email);
+    if (!userId) return res.status(401).json({ error: "User not found" });
+
+    const { weekStart, minutes } = req.body ?? {};
+    if (typeof weekStart !== "string" || typeof minutes !== "number" || minutes < 0) {
+      return res.status(400).json({ error: "weekStart (string) and minutes (number >= 0) required" });
+    }
+
+    if (minutes === 0) {
+      await db.delete(schema.payouts).where(
+        and(eq(schema.payouts.userId, userId), eq(schema.payouts.weekStart, weekStart))
+      );
+    } else {
+      const existing = await db.query.payouts.findFirst({
+        where: and(eq(schema.payouts.userId, userId), eq(schema.payouts.weekStart, weekStart)),
+      });
+      if (existing) {
+        await db.update(schema.payouts).set({ minutes }).where(eq(schema.payouts.id, existing.id));
+      } else {
+        await db.insert(schema.payouts).values({ userId, weekStart, minutes });
+      }
+    }
+
+    // Return all payouts
+    const rows = await db.select().from(schema.payouts).where(eq(schema.payouts.userId, userId));
+    const payouts: Record<string, number> = {};
+    for (const row of rows) {
+      payouts[row.weekStart] = row.minutes;
+    }
+    res.json({ payouts });
+  })
+);
+
 app.post("/api/auth/logout", (_req, res) => {
   res.clearCookie("session", {
     httpOnly: true,

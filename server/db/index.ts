@@ -69,6 +69,16 @@ export async function migrate() {
     )
   `);
 
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS payouts (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      week_start TEXT NOT NULL,
+      minutes INTEGER NOT NULL,
+      UNIQUE(user_id, week_start)
+    )
+  `);
+
   console.log("Migrations complete.");
 }
 

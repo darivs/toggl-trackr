@@ -27,6 +27,7 @@ export type ComputedWeek = {
   diffMinutes: number;
   daysOff: number[];
   isCurrentWeek: boolean;
+  payoutMinutes: number;
 };
 
 export type ComputedResult = {
@@ -80,13 +81,17 @@ function enumerateWeekStarts(startDate: string, endDate: Date): string[] {
   return starts;
 }
 
+export type PayoutsMap = Record<string, number>;
+
 export function computeSummary(params: {
   weeks: WeekSummary[];
   daysOff: DaysOffMap;
+  payouts?: PayoutsMap;
   config?: Partial<Config>;
   now?: Date;
 }): ComputedResult {
   const cfg: Config = { ...DEFAULT_CONFIG, ...(params.config ?? {}) };
+  const payouts = params.payouts ?? {};
   const inferredNow = cfg.dataEndDate ? new Date(`${cfg.dataEndDate}T23:59:59`) : new Date();
   const now = params.now ?? inferredNow;
   const currentWeekStart = startOfWeek(now);
@@ -99,10 +104,9 @@ export function computeSummary(params: {
   const computed: ComputedWeek[] = weekStarts.map((weekStart) => {
     const actualMinutes = actualByWeek.get(weekStart) ?? 0;
     const offs = params.daysOff[weekStart] ?? [];
-    const expectedMinutes =
-      weekStart === currentWeekStart
-        ? cfg.targetHoursPerWeek * 60 // aktuelle Woche immer voller Zielwert
-        : Math.max(0, (cfg.targetHoursPerWeek - offs.length * cfg.hoursPerDay) * 60);
+    const payout = payouts[weekStart] ?? 0;
+    const baseExpected = Math.max(0, (cfg.targetHoursPerWeek - offs.length * cfg.hoursPerDay) * 60);
+    const expectedMinutes = Math.max(0, baseExpected - payout);
     const diffMinutes = actualMinutes - expectedMinutes;
 
     return {
@@ -113,12 +117,17 @@ export function computeSummary(params: {
       diffMinutes,
       daysOff: offs,
       isCurrentWeek: weekStart === currentWeekStart,
+      payoutMinutes: payout,
     };
   });
 
-  const plusAccountMinutes = computed
+  const pastBalance = computed
     .filter((week) => week.weekStart < currentWeekStart)
     .reduce((sum, week) => sum + week.diffMinutes, 0);
+
+  // Subtract current week's payout from account
+  const currentWeekPayout = payouts[currentWeekStart] ?? 0;
+  const plusAccountMinutes = pastBalance - currentWeekPayout;
 
   // Newest first for UI
   const weeks = [...computed].sort((a, b) => b.weekStart.localeCompare(a.weekStart));
@@ -132,16 +141,11 @@ export function computeSummary(params: {
 
 export function formatMinutes(minutes: number): string {
   const abs = Math.round(Math.abs(minutes));
+  const hours = Math.floor(abs / 60);
+  const mins = abs % 60;
+  const body = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 
-  if (abs >= 60) {
-    const hours = Math.floor(abs / 60);
-    const mins = abs % 60;
-    const body = `${hours}:${String(mins).padStart(2, "0")}`;
-
-    return `${minutes < 0 ? "-" : ""}${body}`; // kein Pluszeichen bei positiven Werten
-  }
-
-  return `${minutes < 0 ? "-" : ""}${abs}m`;
+  return `${minutes < 0 ? "-" : ""}${body}`;
 }
 
 export function formatWeekLabel(weekStart: string, weekEnd?: string): string {

@@ -96,3 +96,18 @@ export async function setDaysOff(weekStart: string, daysOff: number[]): Promise<
 
   return data.daysOff;
 }
+
+export type PayoutsMap = Record<string, number>; // weekStart -> minutes
+
+export async function getPayouts(): Promise<PayoutsMap> {
+  const data = await request<{ payouts: PayoutsMap }>("/api/payouts");
+  return data.payouts;
+}
+
+export async function savePayout(weekStart: string, minutes: number): Promise<PayoutsMap> {
+  const data = await request<{ payouts: PayoutsMap }>("/api/payouts", {
+    method: "PUT",
+    body: JSON.stringify({ weekStart, minutes }),
+  });
+  return data.payouts;
+}

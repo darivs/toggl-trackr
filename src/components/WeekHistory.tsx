@@ -1,4 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
+import { ArrowDown } from "lucide-react";
 import DayOffPicker from "./DayOffPicker";
 import { ComputedWeek, formatMinutes, formatWeekLabel } from "../utils/hours";
 
@@ -63,12 +64,12 @@ const WeekHistory: React.FC<Props> = ({
       ref={containerRef}
       style={{ maxHeight: open ? undefined : 0 }}
     >
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm uppercase tracking-wide text-subtle">Wochenhistorie</p>
-          <p className="text-lg font-semibold">Alle Wochen seit Startdatum</p>
-        </div>
-        {!disableToggle && (
+      {!disableToggle && (
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm uppercase tracking-wide text-subtle">Wochenhistorie</p>
+            <p className="text-lg font-semibold">Alle Wochen seit Startdatum</p>
+          </div>
           <button
             type="button"
             className="btn btn-muted text-xs px-3 py-1"
@@ -77,8 +78,8 @@ const WeekHistory: React.FC<Props> = ({
           >
             {open ? "Einklappen" : "Ausklappen"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <div
         className="overflow-hidden"
         style={{
@@ -101,15 +102,24 @@ const WeekHistory: React.FC<Props> = ({
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">{formatWeekLabel(week.weekStart, week.weekEnd)}</p>
-                    <p className="text-xs text-subtle">{week.isCurrentWeek ? "Laufende Woche" : "Abgeschlossen"}</p>
+                    <p className="text-xs text-subtle">
+                      {week.isCurrentWeek ? "Laufende Woche" : "Abgeschlossen"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="text-subtle">Ist {formatMinutes(week.actualMinutes)}</span>
-                    <span className="text-subtle">Soll {formatMinutes(week.expectedMinutes)}</span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-subtle">
+                      {formatMinutes(week.actualMinutes)}/{week.expectedMinutes % 60 === 0 ? week.expectedMinutes / 60 : formatMinutes(week.expectedMinutes)}
+                    </span>
                     <span className={`font-semibold ${diffTone}`}>
                       {week.diffMinutes >= 0 ? "+" : ""}
                       {formatMinutes(week.diffMinutes)}
                     </span>
+                    {week.payoutMinutes > 0 && (
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-primary">
+                        <ArrowDown size={13} />
+                        {formatMinutes(week.payoutMinutes)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3">
