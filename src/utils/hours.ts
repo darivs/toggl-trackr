@@ -121,13 +121,16 @@ export function computeSummary(params: {
     };
   });
 
-  const pastBalance = computed
+  // diffMinutes is inflated by payouts (reduced expected → higher diff),
+  // subtract payoutMinutes to get true overtime per week
+  const rawPastBalance = computed
     .filter((week) => week.weekStart < currentWeekStart)
-    .reduce((sum, week) => sum + week.diffMinutes, 0);
+    .reduce((sum, week) => sum + week.diffMinutes - week.payoutMinutes, 0);
 
-  // Subtract current week's payout from account
-  const currentWeekPayout = payouts[currentWeekStart] ?? 0;
-  const plusAccountMinutes = pastBalance - currentWeekPayout;
+  // All payouts (past + current week) are deducted from the account
+  const totalPayouts = Object.values(payouts).reduce((sum, m) => sum + m, 0);
+
+  const plusAccountMinutes = rawPastBalance - totalPayouts;
 
   // Newest first for UI
   const weeks = [...computed].sort((a, b) => b.weekStart.localeCompare(a.weekStart));
