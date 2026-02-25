@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import DayOffPicker from "./DayOffPicker";
-import { ComputedWeek, formatMinutes, formatWeekLabel } from "../utils/hours";
+import { ComputedWeek, formatMinutes, formatWeekLabel } from "../lib/hours";
 
 type Props = {
   weeks: ComputedWeek[];
@@ -30,7 +30,7 @@ const WeekHistory: React.FC<Props> = ({
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [containerMaxHeight, setContainerMaxHeight] = useState<number>(360);
+  const [containerMaxHeight, setContainerMaxHeight] = useState<number>(240);
 
   useLayoutEffect(() => {
     if (disableToggle) {
@@ -47,8 +47,8 @@ const WeekHistory: React.FC<Props> = ({
   useLayoutEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
-      const heightOfThreeEntries = 390;
-      const available = Math.max(240, heightOfThreeEntries);
+      const heightOfTwoCurrentWeekCards = 240;
+      const available = Math.max(240, heightOfTwoCurrentWeekCards);
       setContainerMaxHeight(available);
     };
     update();
@@ -85,7 +85,7 @@ const WeekHistory: React.FC<Props> = ({
         style={{
           maxHeight: open ? Math.min(maxHeight, containerMaxHeight) : 0,
           opacity: open ? 1 : 0,
-          transition: "max-height 260ms ease, opacity 180ms ease",
+          transition: "max-height 240ms ease, opacity 180ms ease",
         }}
       >
         <div
@@ -102,13 +102,14 @@ const WeekHistory: React.FC<Props> = ({
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">{formatWeekLabel(week.weekStart, week.weekEnd)}</p>
-                    <p className="text-xs text-subtle">
-                      {week.isCurrentWeek ? "Laufende Woche" : "Abgeschlossen"}
-                    </p>
+                    <p className="text-xs text-subtle">{week.isCurrentWeek ? "Laufende Woche" : "Abgeschlossen"}</p>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-subtle">
-                      {formatMinutes(week.actualMinutes)}/{week.expectedMinutes % 60 === 0 ? week.expectedMinutes / 60 : formatMinutes(week.expectedMinutes)}
+                      {formatMinutes(week.actualMinutes)}/
+                      {week.expectedMinutes % 60 === 0
+                        ? week.expectedMinutes / 60
+                        : formatMinutes(week.expectedMinutes)}
                     </span>
                     <span className={`font-semibold ${diffTone}`}>
                       {week.diffMinutes >= 0 ? "+" : ""}
