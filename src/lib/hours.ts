@@ -90,10 +90,10 @@ export function computeSummary(params: {
     .filter((week) => week.weekStart < currentWeekStart)
     .reduce((sum, week) => sum + week.diffMinutes - week.payoutMinutes, 0);
 
-  // All payouts (past + current week) are deducted from the account
-  const totalPayouts = Object.values(payouts).reduce((sum, m) => sum + m, 0);
-
-  const plusAccountMinutes = rawPastBalance - totalPayouts;
+  // Past week payouts are already neutralised above. Only deduct current week's
+  // payout separately, since the current week is excluded from rawPastBalance.
+  const currentWeekPayout = payouts[currentWeekStart] ?? 0;
+  const plusAccountMinutes = rawPastBalance - currentWeekPayout;
 
   // Newest first for UI
   const weeks = [...computed].sort((a, b) => b.weekStart.localeCompare(a.weekStart));
