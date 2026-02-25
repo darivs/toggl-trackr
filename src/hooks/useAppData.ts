@@ -293,6 +293,7 @@ export function useAppData() {
     daysOff,
     loading,
     error,
+    setError,
     user,
     tokenInput,
     setTokenInput,
