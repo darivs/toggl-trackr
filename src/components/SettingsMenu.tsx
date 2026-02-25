@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LogOut, Monitor, Moon, Settings, SunMedium } from "lucide-react";
-import { useTheme } from "../theme";
-import type { AuthUser } from "../auth";
-import type { Config } from "../utils/hours";
+import { useTheme } from "../providers/ThemeProvider";
+import type { AuthUser } from "../types";
+import type { Config } from "../types";
 
 type ThemeOption = {
   label: string;

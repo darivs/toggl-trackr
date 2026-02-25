@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { ComputedWeek, formatMinutes, formatWeekLabel } from "../utils/hours";
+import { ComputedWeek, formatMinutes, formatWeekLabel } from "../lib/hours";
 
 type Props = {
   week?: ComputedWeek;

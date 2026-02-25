@@ -1,11 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { loginWithGoogle } from "./api";
+import { loginWithGoogle } from "./api/client";
+import type { AuthUser } from "./types";
 
-export type AuthUser = {
-  email: string;
-  name?: string | null;
-  picture?: string | null;
-};
+export type { AuthUser };
 
 type Props = {
   onLogin: (user: AuthUser) => void;
