@@ -22,6 +22,7 @@ const App: React.FC = () => {
     loading,
     loadingData,
     error,
+    setError,
     user,
     savingToken,
     savingPreferences,
@@ -67,7 +68,7 @@ const App: React.FC = () => {
           <LoginPage
             config={config}
             onLogin={(u) => void handleLogin(u)}
-            onError={() => {}}
+            onError={(msg) => setError(msg)}
           />
         </main>
       ) : tokenRequired ? (
