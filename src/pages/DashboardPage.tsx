@@ -103,7 +103,7 @@ const DashboardPage: React.FC<Props> = ({
           </div>
 
           <div className="relative flex flex-wrap w-full items-center gap-2 sm:flex-nowrap">
-            <div className="inline-flex gap-1 rounded-full bg-muted/60 p-1">
+            <div className="hidden sm:inline-flex gap-1 rounded-full bg-muted/60 p-1">
               <button type="button" className={tabClass(isCurrent)} onClick={() => onTabChange("current")}>
                 Aktuelle Woche
               </button>
@@ -114,7 +114,7 @@ const DashboardPage: React.FC<Props> = ({
 
             {!rateLimited && isCurrent && (
               <div
-                className={`hidden sm:flex sm:absolute sm:left-1/2 sm:-translate-x-1/2 items-center gap-1.5 flex-wrap transition-all duration-200 ${isCurrent ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                className={`flex sm:hidden absolute left-1/2 -translate-x-1/2 items-center gap-1.5 flex-wrap transition-all duration-200 ${isCurrent ? "opacity-100" : "opacity-0 pointer-events-none"}`}
                 >
                 <button
                   type="button"
