@@ -23,13 +23,13 @@ const Tabs: React.FC<Props> = ({ tabs, initialId, onChange, centerAction, childr
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
-      <div className="flex w-full items-center">
-        <div className="inline-flex gap-2 rounded-full bg-muted/60 p-1 text-sm">
+      <div className="flex w-full flex-col sm:flex-row items-center justify-between">
+        <div className="inline-flex flex-wrap gap-2 rounded-full bg-muted/60 p-1 text-sm">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
-              className={`rounded-full px-4 py-2 font-semibold transition-colors ${
+              className={`rounded-full px-4 py-2 font-semibold transition-colors w-full sm:w-auto ${
                 tab.id === active ? "bg-card text-foreground shadow" : "text-subtle hover:text-foreground"
               }`}
               onClick={() => handleSelect(tab.id)}
