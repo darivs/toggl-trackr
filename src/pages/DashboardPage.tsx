@@ -114,7 +114,8 @@ const DashboardPage: React.FC<Props> = ({
 
             {!rateLimited && isCurrent && (
               <div
-                className={`flex flex-col sm:flex-row sm:absolute sm:left-1/2 sm:-translate-x-1/2 items-center gap-1.5 flex-wrap transition-all duration-200 ${isCurrent ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                className={`flex flex-col sm:flex-row absolute left-1/2 -translate-x-1/2 items-center gap-1.5 flex-wrap transition-all duration-200 ${isCurrent ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                >
                 <button
                   type="button"
                   onClick={onCancelPayout}
